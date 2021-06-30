@@ -12,5 +12,9 @@
     <color name="red">#EC0E0E</color>
     <color name="orange">#FF5722</color>
     <color name="blue">#2196F3</color>
+    <color name="grey">#939393</color>
     <color name="gray">#939393</color>
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#D81B60</color>
 </resources>
