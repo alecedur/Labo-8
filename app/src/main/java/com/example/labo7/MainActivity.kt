@@ -1,19 +1,23 @@
 package com.example.labo7
 
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
-import android.os.Looper
 import android.view.View
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import kotlin.random.Random
 import kotlinx.coroutines.*
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
+import kotlin.random.Random
+
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,6 +30,10 @@ class MainActivity : AppCompatActivity() {
 
         var userInput = 0     //este contador lleva la cantidad de inputs presionados por el usuario
         var flag_init = false   //esta bandera indica si se ha presionado el boton
+        var max_sequence = 1
+        var score = 0
+
+        val text_high_score = findViewById<TextView>(R.id.highscore_id)
 
         //inicializamos los botones
         val buttonInit = findViewById<Button>(R.id.Inicio)
@@ -57,6 +65,11 @@ class MainActivity : AppCompatActivity() {
             button6.isClickable = true
         }
 
+        fun update_on_screen_score(){
+            score = max_sequence-1
+            text_high_score.setText("Highscore: " + score.toString())
+        }
+
         //deshabilita todos los botones
         fun hyperDisable(){
             buttonInit.isClickable = false
@@ -74,55 +87,72 @@ class MainActivity : AppCompatActivity() {
         fun EvalPatterns(i: Int){
             if (pattern[i]!=userPattern[i]){
                 Toast.makeText(this@MainActivity, "Secuencia incorrecta", Toast.LENGTH_SHORT).show()
-                userInput = 0
+                update_highscores(max_sequence)
+                userInput = 0   //reset al counter de valores metidos por el usuario
+                max_sequence = 1    //reset al counter de secuencias
                 flag_init = false
-                pattern.clear()
-                userPattern.clear()
+                pattern.clear()     //se reinicia el patron generado
+                userPattern.clear() //se reinicia el patron ingresado por el usuario
+                update_on_screen_score()
+                //game finished, go to next screen.
+                startActivity(Intent(this,SendHighScore::class.java))
+                // close this activity
+                finish()
             }
-            if (i==3){
+            if (i==max_sequence-1){
                 Toast.makeText(this@MainActivity, "Secuencia correcta", Toast.LENGTH_SHORT).show()
                 userInput = 0
                 flag_init = false
-                pattern.clear()
+                //pattern.clear()
+                max_sequence+=1
+                update_on_screen_score()
                 userPattern.clear()
+                buttonInit.performClick()
+            }
+            else {
+                userInput += 1
             }
         }
 
         //estructura de botones. El boton inicial deshabilita todoso los botones
         //y crea una secuencia random la cual se muestra en pantalla de boton a boton
         buttonInit.setOnClickListener(View.OnClickListener {
-            flag_init = true
-            hyperDisable()
-            for (i in 1..4) {
-                val randomNum: Int = Random.nextInt(6)
-                pattern.add(randomNum)
-                if (randomNum==0){
-                    //grayColour(button1)
-                    test(button1, i, randomNum, music)
-                }
-                if (randomNum==1){
-                    //grayColour(button2)
-                    test(button2, i, randomNum, music)
-                }
-                if (randomNum==2){
-                    //grayColour(button3)
-                    test(button3, i, randomNum, music)
-                }
-                if (randomNum==3){
-                    //grayColour(button4)
-                    test(button4, i, randomNum, music)
-                }
-                if (randomNum==4){
-                    //grayColour(button5)
-                    test(button5, i, randomNum, music)
-                }
-                if (randomNum==5){
-                    //grayColour(button6)
-                    test(button6, i, randomNum, music)
-                }
-                Timer().schedule(7000){
-                    hyperEnable()
-                }
+            //while (!should_restart){
+                flag_init = true
+                hyperDisable()
+                for (i in 1..max_sequence) {
+                    if(i==1){
+                        val randomNum: Int = Random.nextInt(6)
+                        pattern.add(randomNum)
+                    }
+                    if (pattern[i-1]==0){
+                        //grayColour(button1)
+                        test(button1, i, pattern[i-1], music)
+                    }
+                    if (pattern[i-1]==1){
+                        //grayColour(button2)
+                        test(button2, i, pattern[i-1], music)
+                    }
+                    if (pattern[i-1]==2){
+                        //grayColour(button3)
+                        test(button3, i, pattern[i-1], music)
+                    }
+                    if (pattern[i-1]==3){
+                        //grayColour(button4)
+                        test(button4, i, pattern[i-1], music)
+                    }
+                    if (pattern[i-1]==4){
+                        //grayColour(button5)
+                        test(button5, i, pattern[i-1], music)
+                    }
+                    if (pattern[i-1]==5){
+                        //grayColour(button6)
+                        test(button6, i, pattern[i-1], music)
+                    }
+                    Timer().schedule((1000*max_sequence).toLong()){
+                        hyperEnable()
+                    }
+                //}
             }
 
         })
@@ -130,79 +160,79 @@ class MainActivity : AppCompatActivity() {
         //Todos los demas botones funcionan igual. Siempre y cuando no se presione
         //el boton inicial, simplemente se reproduce un sonido y cambia a color gris.
         button1.setOnClickListener(View.OnClickListener {
-            button1.setBackgroundColor(Color.GRAY)
-            playSound(music, 0)
             if (flag_init==true){
                 userPattern.add(0)
                 EvalPatterns(userInput)
-                userInput+=1
+                //userInput+=1
             }
+            button1.setBackgroundColor(Color.GRAY)
+            playSound(music, 0)
             Handler().postDelayed(Runnable { // This method will be executed once the timer is over
                 button1.setBackgroundColor(Color.RED)
             }, 1000) // set time as per your requirement
-
         })
 
         button2.setOnClickListener(View.OnClickListener {
-            button2.setBackgroundColor(Color.GRAY)
-            playSound(music, 1)
             if (flag_init==true){
                 userPattern.add(1)
                 EvalPatterns(userInput)
-                userInput+=1
+                //userInput+=1
             }
+            button2.setBackgroundColor(Color.GRAY)
+            playSound(music, 1)
             Handler().postDelayed(Runnable { // This method will be executed once the timer is over
                 button2.setBackgroundColor(Color.parseColor("#FF5722"))
             }, 1000) // set time as per your requirement
         })
 
         button3.setOnClickListener(View.OnClickListener {
-            button3.setBackgroundColor(Color.GRAY)
-            playSound(music, 2)
             if (flag_init==true){
                 userPattern.add(2)
                 EvalPatterns(userInput)
-                userInput+=1
+                //userInput+=1
             }
+            button3.setBackgroundColor(Color.GRAY)
+            playSound(music, 2)
             Handler().postDelayed(Runnable { // This method will be executed once the timer is over
                 button3.setBackgroundColor(Color.parseColor("#FFEB3B"))
             }, 1000) // set time as per your requirement
         })
 
         button4.setOnClickListener(View.OnClickListener {
-            button4.setBackgroundColor(Color.GRAY)
-            playSound(music, 3)
             if (flag_init==true){
                 userPattern.add(3)
                 EvalPatterns(userInput)
-                userInput+=1
+                //userInput+=1
             }
+            button4.setBackgroundColor(Color.GRAY)
+            playSound(music, 3)
             Handler().postDelayed(Runnable { // This method will be executed once the timer is over
                 button4.setBackgroundColor(Color.parseColor("#4CAF50"))
             }, 1000) // set time as per your requirement
         })
 
         button5.setOnClickListener(View.OnClickListener {
-            button5.setBackgroundColor(Color.GRAY)
-            playSound(music, 4)
             if (flag_init==true){
                 userPattern.add(4)
                 EvalPatterns(userInput)
-                userInput+=1
+                //userInput+=1
             }
+            button5.setBackgroundColor(Color.GRAY)
+            playSound(music, 4)
             Handler().postDelayed(Runnable { // This method will be executed once the timer is over
                 button5.setBackgroundColor(Color.parseColor("#FF03DAC5"))
             }, 1000) // set time as per your requirement
         })
 
         button6.setOnClickListener(View.OnClickListener {
-            button6.setBackgroundColor(Color.GRAY)
-            playSound(music, 5)
+
             if (flag_init==true){
                 userPattern.add(5)
                 EvalPatterns(userInput)
-                userInput+=1
+                //userInput+=1
             }
+            button6.setBackgroundColor(Color.GRAY)
+            playSound(music, 5)
             Handler().postDelayed(Runnable { // This method will be executed once the timer is over
                 button6.setBackgroundColor(Color.parseColor("#2196F3"))
             }, 1000) // set time as per your requirement
@@ -260,6 +290,15 @@ class MainActivity : AppCompatActivity() {
                 button.setBackgroundColor(Color.parseColor("#2196F3"))
             }
         }
+    }
+
+    private fun update_highscores(new_score: Int){
+        //setting preferences
+        val prefs = getSharedPreferences("myPrefsKey", Context.MODE_PRIVATE)
+        val editor: SharedPreferences.Editor = prefs.edit()
+        editor.putInt("new_score", new_score)
+        editor.putInt("score_number", 0)
+        editor.commit()
     }
 
 }
